@@ -1,0 +1,27 @@
+function mandelbrotPARRAYFUN(maxIterations, imageSize, xLimits, yLimits)
+    x = linspace(xLimits(1), xLimits(2), imageSize);
+    y = linspace(yLimits(1), yLimits(2), imageSize);
+    [X, Y] = meshgrid(x, y);
+    C_cpu = X + 1i * Y;
+    C_gpu = gpuArray(C_cpu);
+    Z_gpu = gpuArray(zeros(size(C_gpu)));
+    mandelbrotSet_gpu = gpuArray(zeros(size(C_gpu)));
+    
+    mandel_iteration_func = @(z_val, c_val) z_val.^2 + c_val;
+    update_mandelset_func = @(current_count, z_val) current_count + (abs(z_val) <= 2);
+
+    tic;
+    for k = 1:maxIterations
+        Z_gpu = arrayfun(mandel_iteration_func, Z_gpu, C_gpu);
+        mandelbrotSet_gpu = arrayfun(update_mandelset_func, mandelbrotSet_gpu, Z_gpu);
+    end
+    wait(gpuDevice);
+    elapsedTime_gpu = toc;
+    
+    imageData_cpu = gather(mandelbrotSet_gpu) / maxIterations;
+    figure;
+    imagesc(x, y, imageData_cpu);
+    colormap(hot);
+    axis equal off;
+    title(sprintf('Conjunto de Mandelbrot (GPU com arrayfun - %d iterações, tempo %.2f s)', maxIterations, elapsedTime_gpu));
+end
