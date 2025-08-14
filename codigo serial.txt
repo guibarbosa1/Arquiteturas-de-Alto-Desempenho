@@ -1,0 +1,28 @@
+function generateMandelbrot(maxIterations, imageSize, xLimits, yLimits)
+
+    x = linspace(xLimits(1), xLimits(2), imageSize);
+    y = linspace(yLimits(1), yLimits(2), imageSize);
+
+    [X, Y] = meshgrid(x, y);
+    C = X + 1i * Y;
+
+    Z = zeros(size(C));
+    mandelbrotSet = zeros(size(C));
+
+    tic;
+
+    for k = 1:maxIterations
+        Z = Z.^2 + C;
+        mandelbrotSet = mandelbrotSet + (abs(Z) <= 2);
+    end
+
+    elapsedTime = toc;
+
+    imageData = mandelbrotSet / maxIterations;
+
+    figure;
+    imagesc(x, y, imageData);
+    colormap(hot);
+    axis equal off;
+    title(sprintf('Conjunto de Mandelbrot (%d iterações, tempo %.2f s)', maxIterations, elapsedTime));
+end
